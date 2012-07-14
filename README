@@ -1,0 +1,13 @@
+IMAPMoveMail - Ryan Smith
+
+The purpose of this script is mainly for retrieving FBL (Feedback Loop) messages
+from one or more IMAP account(s) and sending them to another email account via 
+smtp socket, all at once in one session.
+
+Typically, the email address we're sending these to will have the ability to 
+parse these messages out and take action on them to update spam filters. 
+
+You'll need to modify the initial variables, and include the IMAP accounts being
+checked with the format specified in the script. 
+
+** The php-imap extension is needed for this script to function properly. **
