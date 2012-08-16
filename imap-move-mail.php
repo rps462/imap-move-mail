@@ -1,25 +1,23 @@
 #!/usr/bin/php
 <?
 
-// set ts=3
-
 // This script will connect to the specified imap email accounts
 // grab the messages and forward them to the specified account.
 // While this is mostly intended for processing feedback loops, it
 // can be used for anything.
 
-$feedback_host			= ''; 		// host where we will send messages
+$feedback_host		= ''; 		// host where we will send messages
 $feedback_port 		= '25';		// host/port
 $feedback_timeout 	= '30';		// host timeout
-$feedback_ehlo			= '';			// ehlo to send 
+$feedback_ehlo		= '';			// ehlo to send 
 $feedback_addr 		= '';			// address to whom messages will be sent
 $feedback_from 		= '';			// address from whom messages will be sent
 
-$fbl_log 				= '/var/log/moveemail.log';
+$fbl_log 		= '/var/log/moveemail.log';
 
 sendLog($fbl_log, "Beginning Mailbox Processing.");
 
-// Speficy Mailboxes hers
+// Speficy Mailboxes here
 // Format: 
 //    $var = array('name'     => 'Account Title', 
 //                 'hostmame' => 'imap host', 
@@ -37,23 +35,22 @@ sendLog($fbl_log, "Beginning Mailbox Processing.");
 foreach ($fblarray as $_fblarray)
 {
 	$msgpack = get_fbl_messages($_fblarray, $fbl_log);
-
 	$msgcount = count($msgpack);
 
-   if ($msgcount > 0)
+	if ($msgcount > 0)
 	{
 		sendLog($fbl_log, "Adding $msgcount message(s) to $_fblarray[name] message pack.");
-   	$fblmsgarray[] = $msgpack;
+   		$fblmsgarray[] = $msgpack;
 	} else
-   {
+	{
 		sendLog($fbl_log, "No messages for $_fblarray[name] FBL.");
-   }
+	}
 }
 
 if (count($fblmsgarray) == 0) 
 {
 	sendLog($fbl_log, "No messages to process, exiting.");
-   exit;
+	exit;
 }
 
 // Connect up
@@ -61,7 +58,7 @@ $smtpconx = fsockopen($feedback_host, $feedback_port, $errno, $errstr, $feedback
 
 if(!$smtpconx)
 {
-   sendLog($fbl_log, "ERROR: $feedback_host - $errno - $errstr.");
+	sendLog($fbl_log, "ERROR: $feedback_host - $errno - $errstr.");
 	exit;
 } else
 {
@@ -96,11 +93,11 @@ sendLog($fbl_log, "Finished, disconnecting.");
 
 function get_fbl_messages($fbl_array, $fbl_log) 
 {
-   $msgpack  = array();
-   $fblname  = $fbl_array['name'];
-   $hostname = $fbl_array['hostname'];
-   $hostname = "{".$hostname."}";
-   $username = $fbl_array['username'];
+	$msgpack  = array();
+	$fblname  = $fbl_array['name'];
+	$hostname = $fbl_array['hostname'];
+	$hostname = "{".$hostname."}";
+	$username = $fbl_array['username'];
 	$password = $fbl_array['password'];
 
 	sendLog($fbl_log, "Connecting to $fblname FBL IMAP : $username@$hostname.");
@@ -108,26 +105,24 @@ function get_fbl_messages($fbl_array, $fbl_log)
 
 	if ($mailbox) 
 	{
-   	$num_msg = imap_num_msg($mailbox);
+   		$num_msg = imap_num_msg($mailbox);
 
-   	if ($num_msg > 0) 
-   	{
+   		if ($num_msg > 0) 
+   		{
 			sendLog($fbl_log, "Fetching $num_msg FBL message(s).");
 
-      	for ($i=$num_msg; $i>0; $i--) 
+			for ($i=$num_msg; $i>0; $i--) 
 			{
 				$fblhdr = imap_fetchheader($mailbox, $i);
-            $fblhdr = str_replace("\r","",$fblhdr);
+				$fblhdr = str_replace("\r","",$fblhdr);
+				$fblbody = imap_body($mailbox, $i);
+				$fblbody = str_replace("\r","",$fblbody);
+				$fblmsg = $fblhdr."\n".$fblbody;
 
-            $fblbody = imap_body($mailbox, $i);
-            $fblbody = str_replace("\r","",$fblbody);
-
-            $fblmsg = $fblhdr."\n".$fblbody;
-
-            array_push($msgpack, $fblmsg);
-            imap_delete($mailbox, $i);
+				array_push($msgpack, $fblmsg);
+				imap_delete($mailbox, $i);
 			}
-         return $msgpack;
+			return $msgpack;
 		} 
 
 		imap_close($mailbox);
@@ -140,47 +135,47 @@ function get_fbl_messages($fbl_array, $fbl_log)
 
 function sendLog($log_file, $msg)
 {
-   $ct = timeStamp();
-   $flog = fopen($log_file, 'a') or die("can't open file $log_file");
-   $str = "[" . $ct . "] " . $msg;
-   fwrite($flog, $str ."\n");
-   fclose($flog);
+	$ct = timeStamp();
+	$flog = fopen($log_file, 'a') or die("can't open file $log_file");
+	$str = "[" . $ct . "] " . $msg;
+	fwrite($flog, $str ."\n");
+	fclose($flog);
 }
 
 function timeStamp()
 {
-   $sign = "-";
-   $h = "7";
-   $dst = "false";
+	$sign = "-";
+	$h = "7";
+	$dst = "false";
 
-   if ($dst)
-   {
-      $daylight_saving = date('I');
-      if ($daylight_saving)
-      {
-         if ($sign == "-")
-         {
-            $h=$h-1;
-         } else
-         {
-            $h=$h+1;
-         }
-      }
-   }
+	if ($dst)
+	{
+		$daylight_saving = date('I');
+		if ($daylight_saving)
+		{
+			if ($sign == "-")
+			{
+				$h=$h-1;
+			} else
+			{
+				$h=$h+1;
+			}
+		}
+	}
 
-   $hm = $h * 60;
-   $ms = $hm * 60;
+	$hm = $h * 60;
+	$ms = $hm * 60;
 
-   if ($sign == "-")
-   {
-      $timestamp = time()-($ms);
-   } else
-   {
-      $timestamp = time()+($ms);
-   }
+	if ($sign == "-")
+	{
+		$timestamp = time()-($ms);
+	} else
+	{
+		$timestamp = time()+($ms);
+	}
 
-   $ct = gmdate("Y-m-d H:i:s", $timestamp);
-   return($ct);
+	$ct = gmdate("Y-m-d H:i:s", $timestamp);
+	return($ct);
 }
 
 ?>
